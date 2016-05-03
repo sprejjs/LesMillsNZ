@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Les Mills NZ</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="prefs_email_input_placeholder">Your email</string>
+    <string name="pref_btn_save_text">Save preferences</string>
+    <string name="pref_lbl_selection_title">Your gym</string>
+
+    <!-- Sync adapter -->
+    <string name="sync_account_type">lesmills.spreys.com</string>
+    <string name="content_authority">com.spreys.lesmillsnz.app</string>
+    <bool name="isW700dp">false</bool>
+
+</resources>

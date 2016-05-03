@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:background="@drawable/pop_up_background"
+    android:layout_height="match_parent">
+
+    <!-- Close view -->
+    <Button
+        android:id="@+id/btnPopupClose"
+        android:layout_gravity="end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/btn_close_xml"/>
+
+    <!-- Class name -->
+    <TextView
+        android:id="@+id/txtPopUpClassName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:gravity="center"/>
+
+    <!-- Class duration -->
+    <TextView
+        android:id="@+id/txtPopUpDuration"
+        android:layout_width="match_parent"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:gravity="center"
+        android:layout_height="wrap_content" />
+
+    <!-- Intensity -->
+    <TextView
+        android:id="@+id/txtPopUpIntensity"
+        android:layout_width="match_parent"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:gravity="center"
+        android:layout_height="wrap_content" />
+
+    <!-- Description -->
+    <TextView
+        android:id="@+id/txtPopUpDescription"
+        android:layout_width="match_parent"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:gravity="center"
+        android:layout_height="wrap_content" />
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="20dp">
+
+        <!-- Share button -->
+        <Button
+            android:id="@+id/btnPopupShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/btn_share_xml"/>
+
+        <!-- Calendar button -->
+        <Button
+            android:id="@+id/btnPopupCalendar"
+            android:layout_width="wrap_content"
+            android:background="@drawable/btn_calendar_xml"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</LinearLayout>

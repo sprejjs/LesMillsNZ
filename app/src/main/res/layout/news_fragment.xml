@@ -1,0 +1,20 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="horizontal">
+
+    <ListView
+        android:id="@+id/listViewNews"
+        android:layout_width="0dp"
+        android:layout_weight="0.3"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/news_details_container"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.7" />
+
+</LinearLayout>
