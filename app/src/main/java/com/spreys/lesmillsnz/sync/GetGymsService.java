@@ -51,7 +51,7 @@ public class GetGymsService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        JSONObject gymsObject = NetworkUtils.GetJsonFromUrl(UrlProvider.GetClubsUrl());
+        JSONObject gymsObject = NetworkUtils.GetJsonFromUrl(UrlProvider.GetClubsUrl(), null);
         try {
             ArrayList<Club> clubs = new ArrayList<Club>();
             JSONArray gymsArray = gymsObject.getJSONArray("gyms");

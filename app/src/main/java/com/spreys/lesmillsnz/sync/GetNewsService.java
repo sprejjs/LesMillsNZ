@@ -53,7 +53,7 @@ public class GetNewsService extends IntentService{
     protected void onHandleIntent(Intent intent) {
         int preferredClubId = intent.getIntExtra(EXTRA_KEY_PREF_CLUB, -1);
 
-        JSONObject newsObject = NetworkUtils.GetJsonFromUrl(UrlProvider.GetNewsUrl(preferredClubId));
+        JSONObject newsObject = NetworkUtils.GetJsonFromUrl(UrlProvider.GetNewsUrl(preferredClubId), null);
         try {
             ArrayList<NewsArticle> newsArticles = new ArrayList<NewsArticle>();
             JSONArray gymsArray = newsObject.getJSONArray("news");

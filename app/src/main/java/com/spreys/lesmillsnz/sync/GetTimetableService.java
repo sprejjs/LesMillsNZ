@@ -66,7 +66,8 @@ public class GetTimetableService extends IntentService {
         }
 
         JSONObject timetableObject = NetworkUtils.GetJsonFromUrl(
-                UrlProvider.GetTimetableUrl(preferredClubId)
+                UrlProvider.GetTimetableUrl(preferredClubId),
+                null
         );
 
         try {
