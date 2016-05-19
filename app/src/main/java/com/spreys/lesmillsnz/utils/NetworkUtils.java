@@ -45,8 +45,10 @@ public class NetworkUtils {
         try {
             myURL = new URL(url);
             URLConnection conn = myURL.openConnection();
-            for(Map.Entry<String, String> parameter: properties.entrySet()){
-                conn.setRequestProperty(parameter.getKey(), parameter.getValue());
+            if (properties != null) {
+                for(Map.Entry<String, String> parameter: properties.entrySet()){
+                    conn.setRequestProperty(parameter.getKey(), parameter.getValue());
+                }
             }
             conn.setDoOutput(false);
             conn.setDoInput(true);
