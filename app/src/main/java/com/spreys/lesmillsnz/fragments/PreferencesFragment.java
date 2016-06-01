@@ -1,13 +1,22 @@
 package com.spreys.lesmillsnz.fragments;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -22,12 +31,17 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spreys.lesmillsnz.R;
 import com.spreys.lesmillsnz.data.DataContract.ClubEntry;
@@ -54,7 +68,10 @@ import java.util.List;
  *         Contact by: vlad@spreys.com
  */
 public class PreferencesFragment extends Fragment implements DisplayFragmentInterface,
-        LoaderManager.LoaderCallbacks<Cursor>{
+        LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final int FINE_LOCATION_REQUEST = 41245;
+
     private ArrayList<Club> mClubs;
     private static final String TAG = PreferencesFragment.class.getSimpleName();
     private static final int CLUB_LOADER = 0;
@@ -62,7 +79,9 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
     private IntentFilter filter;
     private Club selectedClub;
     private boolean data_displayed = false;
+    private LocationListener locationListener;
 
+    Marker mCurrLocationMarker;
     MapView mapView;
     GoogleMap map;
 
@@ -87,10 +106,11 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
 
         //Save preferences onClick listener
         Button button = (Button) rootView.findViewById(R.id.save_preferences);
-        button.setOnClickListener(new View.OnClickListener()
-        {
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) { savePreferences(); }
+            public void onClick(View v) {
+                savePreferences();
+            }
         });
 
         filter = new IntentFilter();
@@ -119,24 +139,24 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
      *      ACTION_UNABLE_TO_GET_GYMS if data is not displayed, then request an immediate sync
      * @param intent Intent received from the service
      */
-    private void handleGetGymsServiceAction(Intent intent){
+    private void handleGetGymsServiceAction(Intent intent) {
         String action = intent.getAction();
         UiUtils.HideLoadingSpinner(getActivity());
 
         if (action.equals(GetGymsService.ACTION_GYMS_UPDATED)) {
-            if(!data_displayed){
+            if (!data_displayed) {
                 displayData();
             }
-        } else if (action.equals(GetGymsService.ACTION_UNABLE_TO_GET_GYMS)){
-            if(!data_displayed){
+        } else if (action.equals(GetGymsService.ACTION_UNABLE_TO_GET_GYMS)) {
+            if (!data_displayed) {
                 LesMillsSyncAdapter.syncImmediately(getActivity());
             }
         }
     }
 
-    private void displayData(){
+    private void displayData() {
         //Drop down menu
-        Spinner gymSelectionDropDown = (Spinner)getActivity().findViewById(R.id.gymDropdown);
+        Spinner gymSelectionDropDown = (Spinner) getActivity().findViewById(R.id.gymDropdown);
         gymSelectionDropDown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int row_id, long l) {
@@ -144,27 +164,28 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
                 int newPreferredClub = row_id + 1;
 
                 int oldPreferredClub = PreferenceProvider.GetPreferredClub(getActivity());
-                if(oldPreferredClub != newPreferredClub){
+                if (oldPreferredClub != newPreferredClub) {
                     PreferenceProvider.SavePreferredClub(newPreferredClub, getActivity());
                     LesMillsSyncAdapter.syncImmediately(getActivity());
                 }
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> adapterViewICS) {}
+            public void onNothingSelected(AdapterView<?> adapterViewICS) {
+            }
         });
         List<String> list = new ArrayList<>();
 
-        for(Club club : mClubs){
+        for (Club club : mClubs) {
             list.add(club.getName());
         }
 
-        if(list.size() > 0){
+        if (list.size() > 0) {
             ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(getActivity(),
                     android.R.layout.simple_spinner_item, list);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             gymSelectionDropDown.setAdapter(dataAdapter);
-            data_displayed  = true;
+            data_displayed = true;
         }
 
         gymSelectionDropDown.setSelection(PreferenceProvider.GetPreferredClub(getActivity()) - 1);
@@ -175,11 +196,11 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
      * club, clears the map, navigates to the selected club and drops the new market on the map
      * @param gym_id unique identifier of the club
      */
-    private void selectClub(int gym_id){
+    private void selectClub(int gym_id) {
         this.selectedClub = mClubs.get(gym_id);
 
         //Drop the new market if map is already initialised
-        if(map != null){
+        if (map != null) {
             map.clear();
             map.addMarker(new MarkerOptions()
                     .position(new LatLng(selectedClub.getLatitude(), selectedClub.getLongitude()))
@@ -196,7 +217,7 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
 
     @Override
     public void onResume() {
-        if(mapView != null){
+        if (mapView != null) {
             mapView.onResume();
         }
         super.onResume();
@@ -215,15 +236,76 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
     public void onLowMemory() {
         super.onLowMemory();
 
-        if(mapView != null) {
+        if (mapView != null) {
             mapView.onLowMemory();
         }
     }
 
-    private void initialiseMap(final Bundle bundle){
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == FINE_LOCATION_REQUEST) {
+            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                map.setMyLocationEnabled(true);
+                map.getUiSettings().setMyLocationButtonEnabled(true);
+            }
+        }
+    }
+
+    private void displayMyLocation(){
+        map.setMyLocationEnabled(true);
+        map.getUiSettings().setMyLocationButtonEnabled(true);
+
+        locationListener = new LocationListener() {
+
+            @Override
+            public void onLocationChanged(Location location) {
+                if (mCurrLocationMarker != null) {
+                    mCurrLocationMarker.remove();
+                }
+
+                //Place current location marker
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(latLng);
+                markerOptions.title("Current Position");
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                mCurrLocationMarker = map.addMarker(markerOptions);
+
+                //move map camera
+                map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                map.animateCamera(CameraUpdateFactory.zoomTo(11));
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                //This method is intentionally left empty
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+                //This method is intentionally left empty
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+                //This method is intentionally left empty
+            }
+        };
+    }
+
+    private void initialiseMap(final Bundle bundle) {
+        int checkGooglePlayServices =    GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity());
+        if (checkGooglePlayServices != ConnectionResult.SUCCESS) {
+            // google play services is missing!!!!
+            /* Returns status code indicating whether there was an error.
+            Can be one of following in ConnectionResult: SUCCESS, SERVICE_MISSING, SERVICE_VERSION_UPDATE_REQUIRED, SERVICE_DISABLED, SERVICE_INVALID.
+            */
+            GooglePlayServicesUtil.getErrorDialog(checkGooglePlayServices, getActivity(), 1122).show();
+        }
+
         new Handler().postDelayed(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 MapsInitializer.initialize(getActivity());
                 mapView = (MapView) getActivity().findViewById(R.id.map_view);
                 mapView.onCreate(bundle);
@@ -231,9 +313,14 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
                 // Gets to GoogleMap from the MapView and does initialization stuff
                 map = mapView.getMap();
 
-                if(map != null){
-                    map.getUiSettings().setMyLocationButtonEnabled(false);
-                    map.setMyLocationEnabled(false);
+                if (map != null) {
+                    if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        displayMyLocation();
+                    } else {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            getActivity().requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_REQUEST);
+                        }
+                    }
 
                     // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
                     MapsInitializer.initialize(getActivity());
