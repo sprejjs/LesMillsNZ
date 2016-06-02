@@ -38,4 +38,16 @@
         android:layout_height="wrap_content"
         android:text="@string/pref_btn_save_text"/>
 
+    <Button
+        android:text="@string/write_into_nfc_tag"
+        android:id="@+id/btnNfcWrite"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btnNfcRead"
+        android:text="@string/read_nfc_tag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>

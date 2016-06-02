@@ -10,7 +10,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
+import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -44,6 +45,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.spreys.lesmillsnz.R;
+import com.spreys.lesmillsnz.activities.MainActivity;
 import com.spreys.lesmillsnz.data.DataContract.ClubEntry;
 import com.spreys.lesmillsnz.model.Club;
 import com.spreys.lesmillsnz.sync.GetGymsService;
@@ -123,6 +125,25 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
                 handleGetGymsServiceAction(intent);
             }
         };
+
+        //Read NFC tag
+        rootView.findViewById(R.id.btnNfcRead).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NfcAdapter mNfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
+                if (mNfcAdapter == null) {
+                    // Stop here, we definitely need NFC
+                    Toast.makeText(getActivity(), "This device doesn't support NFC.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if (!mNfcAdapter.isEnabled()) {
+                    Toast.makeText(getActivity(), "NFC is disabled.", Toast.LENGTH_SHORT).show();
+                }
+
+                ((MainActivity)getActivity()).handleIntent(getActivity().getIntent());
+            }
+        });
 
         return rootView;
     }
@@ -275,6 +296,7 @@ public class PreferencesFragment extends Fragment implements DisplayFragmentInte
                 //move map camera
                 map.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 map.animateCamera(CameraUpdateFactory.zoomTo(11));
+                locationListener = null;
             }
 
             @Override

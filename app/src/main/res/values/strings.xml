@@ -11,6 +11,8 @@
     <!-- Sync adapter -->
     <string name="sync_account_type">lesmills.spreys.com</string>
     <string name="content_authority">com.spreys.lesmillsnz.app</string>
+    <string name="write_into_nfc_tag">Write into NFC tag</string>
+    <string name="read_nfc_tag">Read NFC tag</string>
     <bool name="isW700dp">false</bool>
 
 </resources>
